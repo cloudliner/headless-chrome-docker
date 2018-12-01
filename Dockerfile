@@ -1,13 +1,15 @@
 From node:alpine 
 
-RUN apk add --update chromium
+# RUN apk add --update chromium
 
 WORKDIR /headless-chrome-controller
 
 COPY package.json .
 COPY package-lock.json .
-COPY index.js .
+COPY tsconfig.json .
+COPY src/index.ts src/
 
 RUN npm install
+RUN npm run tsc
 
-CMD node index.js
+CMD node dist/index.js
