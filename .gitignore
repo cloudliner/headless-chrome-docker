@@ -1,8 +1,13 @@
 # compiled output
 /dist
+/docker/dist
+/functions/lib
 
 # dependencies
 /node_modules
+/docker/node_modules
+/functions/node_modules
 
 # misc
-/.Dockerfile.swp
+.Dockerfile.swp
+kube-config.txt
