@@ -18,4 +18,4 @@ kubectl describe deployment headless-chrome-docker
 kubectl describe pod headless-chrome-docker
 kubectl get pod
 
-https://container.googleapis.com/v1beta1/chrome-recording-208807/nodePools
+cp ~/.kube/config kube-config.txt
