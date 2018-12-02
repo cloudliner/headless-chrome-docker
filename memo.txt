@@ -1,3 +1,17 @@
 docker build -t headless-chrome-docker ./
 
 docker run --rm -it -p 3000:3000 headless-chrome-docker
+
+docker tag headless-chrome-controller gcr.io/chrome-recording-208807/headless-chrome-docker
+docker image ls
+
+gcloud docker -- push gcr.io/chrome-recording-208807/headless-chrome-docker
+gcloud container clusters get-credentials your-first-cluster-1 --zone us-central1-a
+kubectl run headless-chrome-docker --image=gcr.io/chrome-recording-208807/headless-chrome-docker --port=3000
+kubectl expose deployment headless-chrome-docker --type=LoadBalancer
+kubectl describe service headless-chrome-docker
+kubectl delete service headless-chrome-docker
+
+kubectl describe pod headless-chrome-docker
+kubectl get pod
+kubectl delete pod headless-chrome-docker-5bb5dcd874-ch2pd

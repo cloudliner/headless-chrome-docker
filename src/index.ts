@@ -1,12 +1,17 @@
 import express = require('express');
 import puppeteer = require('puppeteer');
-import { SSL_OP_ALLOW_UNSAFE_LEGACY_RENEGOTIATION } from 'constants';
 const app = express();
 
-app.get('/', async function(req: express.Request, res: express.Response) {
+app.get(['/', '/:keyword'], async (req: express.Request, res: express.Response) => {
   const browser = await puppeteer.launch({
     args: ['--no-sandbox'],
   });
+
+  let url = 'https://www.google.com/';
+  const keyword = req.params.keyword;
+  if (keyword) {
+    url = url + `search?q=${keyword}`;
+  }
   const browser_version = await browser.version();
   console.log(`browser.version ${browser_version}`);
 
@@ -19,7 +24,7 @@ app.get('/', async function(req: express.Request, res: express.Response) {
     res.write(`${c.type()}: ${c.text()}`);
   });
 
-  await page.goto('https://www.google.com/');
+  await page.goto(url);
 
   const img = await page.screenshot({encoding: 'base64', fullPage: true});
   await res.write(`<img src="data:image/png;base64,${img}" style="border-width:1px; border-style:dashed;">`);
