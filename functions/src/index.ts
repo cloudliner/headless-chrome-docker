@@ -51,31 +51,83 @@ loadConfig()
   .then(() => console.log('loadConfig'))
   .catch(() => console.log('loadConfig: error'));
 
-export const pods = functions.https.onRequest((request, response) => {
-  console.log('pods');
-  client.api.v1.namespaces('default').pods.get()
+export const namespaces = functions.https.onRequest((request, response) => {
+  console.log('namespaces');
+  client.api.v1.namespaces.get()
     .then((res) => {
-      console.log(res);
+      console.log(`Namespaces: ${res}`);
       response.write(JSON.stringify(res, null , "  "));
       response.end();
     })
     .catch((err) => {
-      console.log(err);
+      console.log(`Error: ${err}`);
+      response.write(JSON.stringify(err, null , "  "));
+      response.end();
+    });
+});
+  
+export const pods = functions.https.onRequest((request, response) => {
+  console.log('pods');
+  client.api.v1.namespaces('default').pods.get()
+    .then((res) => {
+      console.log(`Pods: ${res}`);
+      response.write(JSON.stringify(res, null , "  "));
+      response.end();
+    })
+    .catch((err) => {
+      console.log(`Error: ${err}`);
       response.write(JSON.stringify(err, null , "  "));
       response.end();
     });
 });
 
-export const namespaces = functions.https.onRequest((request, response) => {
-  console.log('namespaces');
-  client.api.v1.namespaces.get()
-    .then((res) => {
-      console.log(res);
+export const run = functions.https.onRequest((request, response) => {
+  console.log('run');
+  client.apis.apps.v1.namespaces('default').deployments.post({ body: {
+    'kind': 'Deployment',
+    'spec': {
+      'replicas': 1,
+      'template': {
+        'spec': {
+          'containers': [
+            {
+              'image': 'gcr.io/chrome-recording-208807/headless-chrome-docker',
+              'name': 'headless-chrome-docker',
+              'ports': [
+                {
+                  'containerPort': 3000
+                }
+              ]
+            }
+          ]
+        },
+        'metadata': {
+          'labels': {
+            'app': 'headless-chrome-docker'
+          }
+        }
+      },
+      'selector': {
+        'matchLabels': {
+          'app': 'headless-chrome-docker'
+        }
+      }
+    },
+    'apiVersion': 'apps/v1',
+    'metadata': {
+      'labels': {
+        'app': 'headless-chrome-docker'
+      },
+      'name': 'headless-chrome-docker'
+    }
+  }})
+   .then((res) => {
+      console.log(`Run: ${res}`);
       response.write(JSON.stringify(res, null , "  "));
       response.end();
     })
     .catch((err) => {
-      console.log(err);
+      console.log(`Error: ${err}`);
       response.write(JSON.stringify(err, null , "  "));
       response.end();
     });
