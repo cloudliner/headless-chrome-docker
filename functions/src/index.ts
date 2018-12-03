@@ -81,6 +81,36 @@ export const pods = functions.https.onRequest((request, response) => {
     });
 });
 
+export const deployments = functions.https.onRequest((request, response) => {
+  console.log('deployments');
+  client.api.apps.v1.namespaces('default').deployments.get()
+    .then((res) => {
+      console.log(`Deployments: ${res}`);
+      response.write(JSON.stringify(res, null , "  "));
+      response.end();
+    })
+    .catch((err) => {
+      console.log(`Error: ${err}`);
+      response.write(JSON.stringify(err, null , "  "));
+      response.end();
+    });
+});
+
+export const services = functions.https.onRequest((request, response) => {
+  console.log('services');
+  client.api.v1.namespaces('default').services.get()
+    .then((res) => {
+      console.log(`Services: ${res}`);
+      response.write(JSON.stringify(res, null , "  "));
+      response.end();
+    })
+    .catch((err) => {
+      console.log(`Error: ${err}`);
+      response.write(JSON.stringify(err, null , "  "));
+      response.end();
+    });
+});
+
 export const run = functions.https.onRequest((request, response) => {
   console.log('run');
   client.apis.apps.v1.namespaces('default').deployments.post({ body: {
@@ -103,28 +133,57 @@ export const run = functions.https.onRequest((request, response) => {
         },
         'metadata': {
           'labels': {
-            'app': 'headless-chrome-docker'
+            'run': 'headless-chrome-docker'
           }
         }
       },
       'selector': {
         'matchLabels': {
-          'app': 'headless-chrome-docker'
+          'run': 'headless-chrome-docker'
         }
       }
     },
     'apiVersion': 'apps/v1',
     'metadata': {
       'labels': {
-        'app': 'headless-chrome-docker'
+        'run': 'headless-chrome-docker'
       },
       'name': 'headless-chrome-docker'
     }
   }})
-   .then((res) => {
-      console.log(`Run: ${res}`);
-      response.write(JSON.stringify(res, null , "  "));
-      response.end();
+   .then((resDeployment) => {
+      console.log(`Deployment: ${resDeployment}`);
+      response.write(JSON.stringify(resDeployment, null , "  "));
+      client.apis.v1.namespaces('default').services.post({ body: {
+        'kind': 'Service',
+        'spec': {
+          'type': 'LoadBalancer',
+          'ports': [
+            {
+              'port': 3000,
+              'protocol': 'TCP',
+              'targetPort': 3000
+            }
+          ],
+          'selector': {
+            'run': 'headless-chrome-docker'
+          }
+        },
+        'apiVersion': 'v1',
+        'metadata': {
+          'name': 'headless-chrome-docker'
+        }
+      }})
+        .then((resService) => {
+          console.log(`Service: ${resService}`);
+          response.write(JSON.stringify(resService, null , "  "));
+          response.end();
+        })
+        .catch((err) => {
+          console.log(`Error: ${err}`);
+          response.write(JSON.stringify(err, null , "  "));
+          response.end();
+        });
     })
     .catch((err) => {
       console.log(`Error: ${err}`);

@@ -11,3 +11,4 @@
 # misc
 .Dockerfile.swp
 kube-config.txt
+response.txt
