@@ -191,3 +191,30 @@ export const run = functions.https.onRequest((request, response) => {
       response.end();
     });
 });
+
+export const remove = functions.https.onRequest((request, response) => {
+  console.log('remove');
+
+  client.apis.v1.namespaces('default').services('headless-chrome-docker').delete()
+    .then((resService) => {
+      console.log(`Delete Service: ${resService}`);
+      response.write(JSON.stringify(resService, null , "  "));
+      
+      client.apis.apps.v1.namespaces('default').deployments('headless-chrome-docker').delete()
+      .then((resDeployment) => {
+        console.log(`Delete Deployment: ${resDeployment}`);
+        response.write(JSON.stringify(resDeployment, null , "  "));
+        response.end();
+      })
+      .catch((err) => {
+        console.log(`Error: ${err}`);
+        response.write(JSON.stringify(err, null , "  "));
+        response.end();
+      });
+    })
+    .catch((err) => {
+      console.log(`Error: ${err}`);
+      response.write(JSON.stringify(err, null , "  "));
+      response.end();
+    });
+});
