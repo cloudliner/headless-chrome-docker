@@ -32,7 +32,10 @@ app.get(['/', '/:keyword'], async (req: express.Request, res: express.Response) 
   await res.write('<p>Hello World</p>');
   await res.write('</body></html>');
   await res.end();
+  server.close(() => {
+    console.log("Server Stopping...");
+  });
 });
 
-app.listen(3000);
+const server = app.listen(3000);
 console.log("Server Starting...");

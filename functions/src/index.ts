@@ -36,7 +36,7 @@ const loadConfig = async () => {
         'user': {
           'auth-provider': {
             'config': {
-              'access-token': `${accessToken}`
+              'access-token': accessToken
             },
             'name': 'gcp'
           }
