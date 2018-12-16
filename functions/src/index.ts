@@ -118,7 +118,12 @@ export const run = functions.https.onRequest(async(request, response) => {
                 'https://www.google.com/'
               ],
               'image': 'gcr.io/chrome-recording-208807/headless-chrome-docker',
-              'name': name
+              'name': name,
+              'resources': {
+                'requests': {
+                  'memory': '384Mi'
+                }
+              }
             }
           ],
           'restartPolicy': 'OnFailure',
@@ -144,7 +149,10 @@ export const run = functions.https.onRequest(async(request, response) => {
 export const remove = functions.https.onRequest(async(request, response) => {
   console.log('remove');
   const client  = await initClient();
+
   const jobRes = await client.api.batch.v1.namespaces('default').jobs.get();
+  console.log('Remove Jobs');
+  response.write(`\n==== Remove Jobs ====\n`);
   jobRes.body.items.forEach(job => {
     const name = job.metadata.name;
     const active = job.status && job.status.active && job.status.active === 1;
@@ -154,6 +162,27 @@ export const remove = functions.https.onRequest(async(request, response) => {
       console.log(`Remove Job: ${name}`);
       response.write(`\n => Remove Job: ${name}\n`);
       client.api.batch.v1.namespaces('default').job(name).delete();
+    } else {
+      console.log(`DO NOT Remove Job: ${name}`);
+      response.write(`\n => DO NOT Remove Job: ${name}\n`);
+    }
+  });
+  console.log('Remove Pods');
+  response.write(`\n==== Remove Pods ====\n`);
+
+  const podRes = await client.api.v1.namespaces('default').pods.get();
+  podRes.body.items.forEach(pod => {
+    const name = pod.metadata.name;
+    const succeeded = pod.status && pod.status.phase && pod.status.phase === 'Succeeded';
+    console.log(`Pod: ${name}`);
+    response.write(JSON.stringify(pod, null , 2));
+    if (succeeded) {
+      console.log(`Remove Pod: ${name}`);
+      response.write(`\n => Remove Pod: ${name}\n`);
+      client.api.v1.namespaces('default').pod(name).delete();
+    } else {
+      console.log(`DO NOT Remove Pod: ${name}`);
+      response.write(`\n => DO NOT Remove Pod: ${name}\n`);
     }
   });
   response.end();
